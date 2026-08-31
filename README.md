@@ -5,7 +5,7 @@ Conversational AI agent that answers founder-level business questions by queryin
 ## Architecture
 
 ```
-Next.js chat UI ── SSE ──► FastAPI /chat ──► Claude (tool-use loop)
+Next.js chat UI ── SSE ──► FastAPI /chat ──► Gemini (function-calling loop)
                                                 │
                                                 ├── list_boards
                                                 ├── get_board_schema
@@ -13,8 +13,9 @@ Next.js chat UI ── SSE ──► FastAPI /chat ──► Claude (tool-use lo
                                                 └── run_analysis (pandas sandbox)
 ```
 
-- **Backend**: Python 3.11+, FastAPI, Anthropic SDK, pandas
+- **Backend**: Python 3.11+, FastAPI, google-genai SDK, pandas
 - **Frontend**: Next.js 15, React 19, Tailwind, SSE streaming
+- **Model**: Gemini 2.5 Flash (free tier — 250 requests/day covers a demo comfortably)
 - **Data source**: monday.com GraphQL API (read-only)
 
 ## Repo layout
@@ -34,7 +35,12 @@ data/          Original CSVs (gitignored; source of truth is monday.com)
 3. Grab your API token: **Avatar (top-right) → Developers → My access tokens**.
 4. Grab both board IDs from the board URLs (`monday.com/boards/{ID}`).
 
-### 2. Backend
+### 2. Google AI Studio (free)
+
+1. Go to https://aistudio.google.com/apikey.
+2. **Create API key** → copy the `AIza…` value. Free tier requires no billing setup.
+
+### 3. Backend
 
 ```
 cd backend
@@ -45,7 +51,7 @@ copy .env.example .env    # then fill in tokens + board IDs
 uvicorn app.main:app --reload --port 8000
 ```
 
-### 3. Frontend
+### 4. Frontend
 
 ```
 cd frontend
@@ -76,7 +82,7 @@ It prints board names, column schemas, the first few normalized rows from each b
 1. **New +** → **Blueprint** → point at this repo.
 2. Render picks up `backend/render.yaml` and creates the web service.
 3. Fill in the `sync: false` env vars in the dashboard:
-   - `ANTHROPIC_API_KEY`
+   - `GOOGLE_API_KEY`
    - `MONDAY_API_TOKEN`
    - `MONDAY_BOARD_DEALS` (numeric board id)
    - `MONDAY_BOARD_WORK_ORDERS` (numeric board id)

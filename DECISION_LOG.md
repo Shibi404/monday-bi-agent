@@ -11,6 +11,8 @@
 
 ## Trade-offs
 
+**Gemini 2.5 Flash over Claude / GPT.** Free-tier access (250 req/day) was the deciding factor for a demo assignment — the reviewer never pays and never sees a rate limit if they poke around. Flash handles the tool loop reliably and its function-calling format is straightforward. Cost: the SDK's tool-calling response objects are slightly less structured than Anthropic's (no per-call ID, args come back as proto mappings) — the loop mints IDs and coerces args explicitly. For production use with paying users I'd re-evaluate against Claude Sonnet, where the agent's tool orchestration tends to be steadier on ambiguous prompts.
+
 **REST/GraphQL over MCP.** monday.com ships an MCP server, but for a single well-scoped integration it adds a process and a permissions ceremony without giving me anything the GraphQL API doesn't. Direct httpx + a tiny normalizer is ~150 lines and completely transparent when things break. If this agent grew to talk to five SaaS tools, I'd swap in MCP for the interface consistency.
 
 **Rich preloaded system prompt over discovery.** At startup the backend fetches both board schemas and embeds them into the system prompt. This costs one round-trip per boot but saves the agent 2–3 tool calls on every conversation ("list boards", "get schema for X", "get schema for Y") and produces materially faster answers. Cost: if a monday user renames a column mid-session, the agent won't notice until the process restarts. Acceptable for a demo; in production I'd refresh the prompt on a 5-min timer or invalidate it via a webhook.
