@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import "./globals.css";
 
 export const metadata: Metadata = {
-  title: "BI Agent",
+  title: "Skylark",
   description: "Ask business questions across your monday.com boards.",
 };
 

@@ -141,71 +141,71 @@ export default function ChatPage() {
   }
 
   return (
-    <main className="min-h-screen flex flex-col max-w-3xl mx-auto px-4">
-      <header className="flex items-center justify-between py-4 border-b border-neutral-800">
-        <div>
-          <h1 className="text-lg font-semibold">BI Agent</h1>
-          <p className="text-xs text-neutral-500">
-            Ask about deals & work orders — data is live from monday.com.
-          </p>
-        </div>
-        <button
-          onClick={newChat}
-          className="text-xs text-neutral-400 hover:text-neutral-100 px-3 py-1 rounded border border-neutral-800 hover:border-neutral-600"
-        >
-          New chat
-        </button>
-      </header>
-
-      <div
-        ref={scrollRef}
-        className="flex-1 overflow-y-auto py-6 space-y-4"
-      >
-        {messages.length === 0 && (
-          <div className="text-center text-neutral-500 mt-16 space-y-4">
-            <p className="text-sm">Try one of these:</p>
-            <div className="flex flex-col gap-2 items-center">
-              {SUGGESTIONS.map((s) => (
-                <button
-                  key={s}
-                  onClick={() => send(s)}
-                  className="text-left text-sm text-neutral-300 border border-neutral-800 hover:border-neutral-600 hover:bg-neutral-900 rounded-lg px-4 py-2 max-w-lg w-full"
-                >
-                  {s}
-                </button>
-              ))}
-            </div>
-          </div>
-        )}
-        {messages.map((m) => (
-          <Message key={m.id} msg={m} />
-        ))}
-      </div>
-
-      <form
-        onSubmit={(e) => {
-          e.preventDefault();
-          send(input);
-        }}
-        className="border-t border-neutral-800 py-4"
-      >
-        <div className="flex gap-2">
-          <input
-            value={input}
-            onChange={(e) => setInput(e.target.value)}
-            placeholder="Ask about pipeline, deals, work orders…"
-            disabled={busy}
-            className="flex-1 bg-neutral-900 border border-neutral-800 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-neutral-600 disabled:opacity-60"
-          />
+    <div className="min-h-screen flex flex-col">
+      <header className="border-b border-neutral-900/80">
+        <div className="max-w-3xl mx-auto px-6 h-14 flex items-center justify-between">
+          <span className="text-lg font-bold tracking-tight">Skylark</span>
           <button
-            type="submit"
-            disabled={busy || !input.trim()}
-            className="bg-neutral-100 text-neutral-900 rounded-lg px-4 py-2 text-sm font-medium disabled:opacity-40"
+            onClick={newChat}
+            className="bg-white text-neutral-900 hover:bg-neutral-200 transition-colors text-sm font-medium rounded-full px-4 py-1.5"
           >
-            {busy ? "…" : "Send"}
+            New chat
           </button>
         </div>
-      </form>
-    </main>
+      </header>
+
+      <main className="flex-1 flex flex-col max-w-3xl w-full mx-auto px-6">
+        <div ref={scrollRef} className="flex-1 overflow-y-auto py-8 space-y-6">
+          {messages.length === 0 && (
+            <div className="mt-24 space-y-8">
+              <div className="text-center">
+                <h1 className="text-3xl font-semibold tracking-tight text-neutral-100">
+                  What do you want to know?
+                </h1>
+              </div>
+              <div className="grid gap-2 max-w-xl mx-auto">
+                {SUGGESTIONS.map((s) => (
+                  <button
+                    key={s}
+                    onClick={() => send(s)}
+                    className="text-left text-sm text-neutral-300 bg-neutral-900/50 border border-neutral-800 hover:border-neutral-700 hover:bg-neutral-900 rounded-xl px-4 py-3 transition-colors"
+                  >
+                    {s}
+                  </button>
+                ))}
+              </div>
+            </div>
+          )}
+          {messages.map((m) => (
+            <Message key={m.id} msg={m} />
+          ))}
+        </div>
+
+        <form
+          onSubmit={(e) => {
+            e.preventDefault();
+            send(input);
+          }}
+          className="pb-6 pt-3"
+        >
+          <div className="flex gap-2 bg-neutral-900 border border-neutral-800 focus-within:border-neutral-700 rounded-2xl p-2 transition-colors">
+            <input
+              value={input}
+              onChange={(e) => setInput(e.target.value)}
+              placeholder="Ask about pipeline, deals, work orders…"
+              disabled={busy}
+              className="flex-1 bg-transparent px-3 py-2 text-sm placeholder:text-neutral-600 focus:outline-none disabled:opacity-60"
+            />
+            <button
+              type="submit"
+              disabled={busy || !input.trim()}
+              className="bg-white text-neutral-900 hover:bg-neutral-200 transition-colors rounded-xl px-4 text-sm font-medium disabled:opacity-30 disabled:hover:bg-white"
+            >
+              {busy ? "…" : "Send"}
+            </button>
+          </div>
+        </form>
+      </main>
+    </div>
   );
 }
