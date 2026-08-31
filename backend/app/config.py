@@ -24,7 +24,7 @@ def load_settings() -> Settings:
 
     return Settings(
         anthropic_api_key=_required("ANTHROPIC_API_KEY"),
-        anthropic_model=os.getenv("ANTHROPIC_MODEL", "claude-sonnet-5"),
+        anthropic_model=os.getenv("ANTHROPIC_MODEL", "claude-haiku-4-5-20251001"),
         monday_api_token=_required("MONDAY_API_TOKEN"),
         monday_board_deals=int(_required("MONDAY_BOARD_DEALS")),
         monday_board_work_orders=int(_required("MONDAY_BOARD_WORK_ORDERS")),
