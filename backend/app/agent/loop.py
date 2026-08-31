@@ -27,20 +27,10 @@ MAX_TOKENS = 4096
 
 
 def build_config(system_prompt: str) -> types.GenerateContentConfig:
-    """Config reused every turn — declares the tools + system prompt.
-
-    thinking_budget=0 disables the model's private reasoning phase. We
-    do this on purpose: thought-capable models emit a thought_signature
-    on function_call parts that MUST be echoed back on the next turn,
-    which conflicts with the loop rebuilding parts from streamed data.
-    For BI queries the model doesn't need hidden reasoning to work well
-    (its visible text is enough), and disabling it makes tool loops
-    faster too.
-    """
+    """Config reused every turn — declares the tools + system prompt."""
     return types.GenerateContentConfig(
         system_instruction=system_prompt,
         max_output_tokens=MAX_TOKENS,
-        thinking_config=types.ThinkingConfig(thinking_budget=0),
         tools=[
             types.Tool(function_declarations=FUNCTION_DECLARATIONS),
         ],
@@ -78,6 +68,12 @@ async def run_agent(
     """
     for _ in range(MAX_ITERATIONS):
         text_chunks: list[str] = []
+        # Preserve the original Part objects for function calls — they
+        # carry a thought_signature the API requires when the same call
+        # is echoed back on the next turn. Rebuilding via
+        # types.Part(function_call=fc) drops that signature and Gemini
+        # rejects the follow-up with a 400.
+        fc_parts: list[types.Part] = []
         # Pair each FunctionCall with the id we emitted so tool_result
         # events can be matched back to their tool_use on the frontend.
         function_calls: list[tuple[str, Any]] = []
@@ -102,6 +98,7 @@ async def run_agent(
                         fc = part.function_call
                         call_id = f"{fc.name}-{uuid.uuid4().hex[:8]}"
                         function_calls.append((call_id, fc))
+                        fc_parts.append(part)  # keep the raw Part
                         yield {
                             "type": "tool_use",
                             "id": call_id,
@@ -112,13 +109,12 @@ async def run_agent(
             yield {"type": "error", "message": f"model call failed: {e}"}
             return
 
-        # Reconstruct the model's turn as a single Content and append.
-        # Text first (if any), then function_call parts in order.
+        # Reconstruct the model's turn: text (concat) first, then the
+        # raw function_call parts so their thought_signature survives.
         model_parts: list[types.Part] = []
         if text_chunks:
             model_parts.append(types.Part.from_text(text="".join(text_chunks)))
-        for _cid, fc in function_calls:
-            model_parts.append(types.Part(function_call=fc))
+        model_parts.extend(fc_parts)
         if not model_parts:
             # Nothing at all came back — treat as end of turn to avoid loop.
             yield {"type": "message_stop", "stop_reason": "empty_response"}
