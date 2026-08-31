@@ -15,8 +15,8 @@ export function Message({ msg }: { msg: ChatMessage }) {
       <div
         className={
           isUser
-            ? "max-w-[85%] rounded-2xl px-4 py-2 bg-neutral-800 text-neutral-100"
-            : "max-w-[90%] w-full text-neutral-100"
+            ? "max-w-[85%] rounded-2xl px-4 py-2 bg-[var(--panel)] text-[var(--text)]"
+            : "max-w-[90%] w-full text-[var(--text)]"
         }
       >
         {msg.text && (
@@ -25,17 +25,17 @@ export function Message({ msg }: { msg: ChatMessage }) {
           </div>
         )}
         {showThinking && (
-          <div className="flex items-center gap-2 text-neutral-500 text-sm">
+          <div className="flex items-center gap-2 text-[var(--muted)] text-sm">
             <span className="inline-flex gap-1">
-              <span className="w-1.5 h-1.5 rounded-full bg-neutral-500 animate-pulse" />
-              <span className="w-1.5 h-1.5 rounded-full bg-neutral-500 animate-pulse [animation-delay:150ms]" />
-              <span className="w-1.5 h-1.5 rounded-full bg-neutral-500 animate-pulse [animation-delay:300ms]" />
+              <span className="w-1.5 h-1.5 rounded-full bg-[var(--muted)] animate-pulse" />
+              <span className="w-1.5 h-1.5 rounded-full bg-[var(--muted)] animate-pulse [animation-delay:150ms]" />
+              <span className="w-1.5 h-1.5 rounded-full bg-[var(--muted)] animate-pulse [animation-delay:300ms]" />
             </span>
             <span className="italic">thinking</span>
           </div>
         )}
         {msg.error && (
-          <div className="text-red-400 text-sm mt-2">Error: {msg.error}</div>
+          <div className="text-red-700 text-sm mt-2">Error: {msg.error}</div>
         )}
       </div>
     </div>

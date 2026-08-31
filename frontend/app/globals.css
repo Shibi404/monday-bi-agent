@@ -3,13 +3,15 @@
 @tailwind utilities;
 
 :root {
-  --bg: #0b0d10;
-  --panel: #14181d;
-  --border: #232a33;
-  --text: #e6edf3;
-  --muted: #8b949e;
-  --accent: #6ea8fe;
-  --user: #1f2937;
+  /* Warm off-white palette — reads as editorial / serious tool,
+     deliberately away from the cool-slate darkness of most AI apps. */
+  --bg: #f6f2ea;
+  --panel: #efeae0;
+  --border: #e4ddce;
+  --text: #1c1917;
+  --muted: #726b62;
+  --accent: #2d5f4e;
+  --user: #1c1917;
 }
 
 html, body {
@@ -26,22 +28,24 @@ html, body {
   font-weight: 600;
   margin: 0.8em 0 0.3em;
   line-height: 1.25;
+  color: var(--text);
 }
 .md-content h1 { font-size: 1.15em; }
 .md-content h2 { font-size: 1.05em; }
 .md-content h3 { font-size: 1em; color: var(--muted); }
-.md-content strong { font-weight: 600; color: #fff; }
+.md-content strong { font-weight: 600; color: var(--text); }
 .md-content ul, .md-content ol { margin: 0.4em 0 0.6em; padding-left: 1.25em; }
 .md-content li { margin: 0.15em 0; }
 .md-content code {
-  background: #1c2229;
+  background: #ece5d5;
   padding: 0.1em 0.35em;
   border-radius: 4px;
   font-size: 0.9em;
   font-family: var(--font-mono, ui-monospace, Menlo, monospace);
+  color: var(--text);
 }
 .md-content pre {
-  background: #0d1117;
+  background: #ece5d5;
   border: 1px solid var(--border);
   padding: 0.75em;
   border-radius: 6px;
@@ -61,7 +65,7 @@ html, body {
   padding: 0.35em 0.7em;
   text-align: left;
 }
-.md-content th { background: #14181d; font-weight: 600; }
+.md-content th { background: var(--panel); font-weight: 600; }
 .md-content a { color: var(--accent); text-decoration: underline; }
 .md-content blockquote {
   border-left: 3px solid var(--border);

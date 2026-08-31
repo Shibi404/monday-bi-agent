@@ -142,12 +142,14 @@ export default function ChatPage() {
 
   return (
     <div className="min-h-screen flex flex-col">
-      <header className="border-b border-neutral-900/80">
+      <header className="border-b border-[var(--border)]">
         <div className="max-w-3xl mx-auto px-6 h-14 flex items-center justify-between">
-          <span className="text-lg font-bold tracking-tight">Skylark</span>
+          <span className="text-lg font-bold tracking-tight text-[var(--text)]">
+            Skylark
+          </span>
           <button
             onClick={newChat}
-            className="bg-white text-neutral-900 hover:bg-neutral-200 transition-colors text-sm font-medium rounded-full px-4 py-1.5"
+            className="bg-[var(--text)] text-[var(--bg)] hover:opacity-90 transition-opacity text-sm font-medium rounded-full px-4 py-1.5"
           >
             New chat
           </button>
@@ -159,7 +161,7 @@ export default function ChatPage() {
           {messages.length === 0 && (
             <div className="mt-24 space-y-8">
               <div className="text-center">
-                <h1 className="text-3xl font-semibold tracking-tight text-neutral-100">
+                <h1 className="text-3xl font-semibold tracking-tight text-[var(--text)]">
                   What do you want to know?
                 </h1>
               </div>
@@ -168,7 +170,7 @@ export default function ChatPage() {
                   <button
                     key={s}
                     onClick={() => send(s)}
-                    className="text-left text-sm text-neutral-300 bg-neutral-900/50 border border-neutral-800 hover:border-neutral-700 hover:bg-neutral-900 rounded-xl px-4 py-3 transition-colors"
+                    className="text-left text-sm text-[var(--text)] bg-[var(--panel)] border border-[var(--border)] hover:bg-[#e8e1d0] rounded-xl px-4 py-3 transition-colors"
                   >
                     {s}
                   </button>
@@ -188,18 +190,18 @@ export default function ChatPage() {
           }}
           className="pb-6 pt-3"
         >
-          <div className="flex gap-2 bg-neutral-900 border border-neutral-800 focus-within:border-neutral-700 rounded-2xl p-2 transition-colors">
+          <div className="flex gap-2 bg-[var(--panel)] border border-[var(--border)] focus-within:border-[color:var(--muted)] rounded-2xl p-2 transition-colors">
             <input
               value={input}
               onChange={(e) => setInput(e.target.value)}
               placeholder="Ask about pipeline, deals, work orders…"
               disabled={busy}
-              className="flex-1 bg-transparent px-3 py-2 text-sm placeholder:text-neutral-600 focus:outline-none disabled:opacity-60"
+              className="flex-1 bg-transparent px-3 py-2 text-sm text-[var(--text)] placeholder:text-[var(--muted)] focus:outline-none disabled:opacity-60"
             />
             <button
               type="submit"
               disabled={busy || !input.trim()}
-              className="bg-white text-neutral-900 hover:bg-neutral-200 transition-colors rounded-xl px-4 text-sm font-medium disabled:opacity-30 disabled:hover:bg-white"
+              className="bg-[var(--text)] text-[var(--bg)] hover:opacity-90 transition-opacity rounded-xl px-4 text-sm font-medium disabled:opacity-30"
             >
               {busy ? "…" : "Send"}
             </button>
