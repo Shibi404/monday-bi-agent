@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import { Message } from "../components/Message";
+import { ModelPicker, type ModelOption } from "../components/ModelPicker";
 import { streamChat } from "./stream";
 import type { ChatMessage, ToolCall } from "./types";
 
@@ -14,6 +15,10 @@ const SUGGESTIONS = [
   "Prepare a leadership update for this week.",
 ];
 
+const MODELS: ModelOption[] = [
+  { id: "gemini-3.6-flash", label: "Gemini 3.6 Flash" },
+];
+
 function newId() {
   return Math.random().toString(36).slice(2, 10);
 }
@@ -24,6 +29,7 @@ export default function ChatPage() {
   const [busy, setBusy] = useState(false);
   const [listening, setListening] = useState(false);
   const [convId, setConvId] = useState<string | undefined>(undefined);
+  const [selectedModel, setSelectedModel] = useState(MODELS[0].id);
   const abortRef = useRef<AbortController | null>(null);
   const scrollRef = useRef<HTMLDivElement>(null);
   // Using `any` for the Web Speech API — types aren't in the TS DOM lib
@@ -237,6 +243,11 @@ export default function ChatPage() {
               placeholder="Ask about pipeline, deals, work orders…"
               disabled={busy}
               className="flex-1 bg-transparent px-4 py-3 text-base text-[var(--text)] placeholder:text-[var(--muted)] focus:outline-none disabled:opacity-60"
+            />
+            <ModelPicker
+              models={MODELS}
+              value={selectedModel}
+              onChange={setSelectedModel}
             />
             <button
               type="button"
