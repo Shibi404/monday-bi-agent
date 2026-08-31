@@ -15,6 +15,7 @@ caller can persist it across turns.
 from __future__ import annotations
 
 import asyncio
+import math
 import uuid
 from typing import Any, AsyncIterator
 
@@ -22,6 +23,25 @@ from google import genai
 from google.genai import types
 
 from .tools import EXECUTORS, FUNCTION_DECLARATIONS, ToolContext
+
+
+def _scrub_nan(obj: Any) -> Any:
+    """Convert NaN/Inf floats anywhere in a nested structure to None.
+
+    pandas returns NaN for missing numeric cells even after .where(pd.notna,
+    None) — the None only survives in object columns. Both consumers of
+    a tool result reject NaN: Gemini's function_response payload is
+    validated server-side (400 INVALID_ARGUMENT), and the browser's
+    JSON.parse rejects the token itself. Scrubbing once at the tool
+    boundary keeps everything downstream valid JSON.
+    """
+    if isinstance(obj, float):
+        return None if math.isnan(obj) or math.isinf(obj) else obj
+    if isinstance(obj, dict):
+        return {k: _scrub_nan(v) for k, v in obj.items()}
+    if isinstance(obj, (list, tuple)):
+        return [_scrub_nan(v) for v in obj]
+    return obj
 
 MAX_ITERATIONS = 12
 MAX_TOKENS = 4096
@@ -182,6 +202,8 @@ async def run_agent(
                 except Exception as e:
                     result = {"error": f"{type(e).__name__}: {e}"}
                     is_error = True
+
+            result = _scrub_nan(result)
 
             if name == "ask_user":
                 pause_for_user = args.get("question", "")
