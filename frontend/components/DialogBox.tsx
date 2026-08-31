@@ -28,26 +28,40 @@ export function DialogBox({
     };
     document.addEventListener("keydown", onKey);
 
-    // Lock background scroll while the dialog is open.
-    // Measure any width the scrollbar was taking BEFORE we hide it
-    // and add matching padding-right to body so the content doesn't
-    // shift horizontally when the scrollbar disappears. scrollbar-gutter
-    // on <html> handles most cases already, this is the belt-and-braces
-    // path used by mature modal libraries (Radix, React-Aria, MUI).
-    const scrollbarWidth =
-      window.innerWidth - document.documentElement.clientWidth;
+    // Bulletproof scroll lock. Setting body.overflow=hidden doesn't
+    // work when the scrollbar lives on <html> — the previous
+    // paddingRight compensation ended up pushing content inward
+    // because the scrollbar was never actually removed.
+    //
+    // Instead: pin body in place with position:fixed at a negative
+    // top offset equal to the current scrollY. Visually nothing
+    // moves, the page can no longer scroll, and the html scrollbar
+    // is untouched (scrollbar-gutter:stable keeps the gutter
+    // reserved). On unmount restore body styles and scroll back to
+    // where we were.
+    const scrollY = window.scrollY;
     const body = document.body;
-    const prevOverflow = body.style.overflow;
-    const prevPaddingRight = body.style.paddingRight;
-    body.style.overflow = "hidden";
-    if (scrollbarWidth > 0) {
-      body.style.paddingRight = `${scrollbarWidth}px`;
-    }
+    const prev = {
+      position: body.style.position,
+      top: body.style.top,
+      left: body.style.left,
+      right: body.style.right,
+      width: body.style.width,
+    };
+    body.style.position = "fixed";
+    body.style.top = `-${scrollY}px`;
+    body.style.left = "0";
+    body.style.right = "0";
+    body.style.width = "100%";
 
     return () => {
       document.removeEventListener("keydown", onKey);
-      body.style.overflow = prevOverflow;
-      body.style.paddingRight = prevPaddingRight;
+      body.style.position = prev.position;
+      body.style.top = prev.top;
+      body.style.left = prev.left;
+      body.style.right = prev.right;
+      body.style.width = prev.width;
+      window.scrollTo(0, scrollY);
     };
   }, [open, onCancel]);
 
