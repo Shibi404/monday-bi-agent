@@ -14,6 +14,7 @@ caller can persist it across turns.
 """
 from __future__ import annotations
 
+import asyncio
 import uuid
 from typing import Any, AsyncIterator
 
@@ -24,6 +25,17 @@ from .tools import EXECUTORS, FUNCTION_DECLARATIONS, ToolContext
 
 MAX_ITERATIONS = 12
 MAX_TOKENS = 4096
+
+# Free-tier Gemini regularly returns 503/429/500 under load. Retry
+# transient failures with exponential backoff before giving up.
+RETRY_STATUSES = (429, 500, 502, 503, 504)
+MAX_RETRIES = 3
+BACKOFF_BASE_S = 1.5
+
+
+def _is_retryable(exc: Exception) -> bool:
+    text = str(exc)
+    return any(str(code) in text for code in RETRY_STATUSES)
 
 
 def build_config(system_prompt: str) -> types.GenerateContentConfig:
@@ -78,36 +90,59 @@ async def run_agent(
         # events can be matched back to their tool_use on the frontend.
         function_calls: list[tuple[str, Any]] = []
 
-        try:
-            stream = await client.aio.models.generate_content_stream(
-                model=model,
-                contents=contents,
-                config=config,
-            )
-            async for chunk in stream:
-                if not chunk.candidates:
+        stream_error: Exception | None = None
+        for attempt in range(MAX_RETRIES + 1):
+            text_chunks = []
+            fc_parts = []
+            function_calls = []
+            emitted_events: list[dict[str, Any]] = []  # buffer to avoid double-emit on retry
+            try:
+                stream = await client.aio.models.generate_content_stream(
+                    model=model,
+                    contents=contents,
+                    config=config,
+                )
+                async for chunk in stream:
+                    if not chunk.candidates:
+                        continue
+                    candidate = chunk.candidates[0]
+                    if not candidate.content or not candidate.content.parts:
+                        continue
+                    for part in candidate.content.parts:
+                        if getattr(part, "text", None):
+                            text_chunks.append(part.text)
+                            emitted_events.append(
+                                {"type": "text_delta", "text": part.text}
+                            )
+                        if getattr(part, "function_call", None):
+                            fc = part.function_call
+                            call_id = f"{fc.name}-{uuid.uuid4().hex[:8]}"
+                            function_calls.append((call_id, fc))
+                            fc_parts.append(part)
+                            emitted_events.append(
+                                {
+                                    "type": "tool_use",
+                                    "id": call_id,
+                                    "name": fc.name,
+                                    "input": _args_to_dict(fc.args),
+                                }
+                            )
+                stream_error = None
+                break
+            except Exception as e:
+                stream_error = e
+                if attempt < MAX_RETRIES and _is_retryable(e):
+                    await asyncio.sleep(BACKOFF_BASE_S * (2**attempt))
                     continue
-                candidate = chunk.candidates[0]
-                if not candidate.content or not candidate.content.parts:
-                    continue
-                for part in candidate.content.parts:
-                    if getattr(part, "text", None):
-                        text_chunks.append(part.text)
-                        yield {"type": "text_delta", "text": part.text}
-                    if getattr(part, "function_call", None):
-                        fc = part.function_call
-                        call_id = f"{fc.name}-{uuid.uuid4().hex[:8]}"
-                        function_calls.append((call_id, fc))
-                        fc_parts.append(part)  # keep the raw Part
-                        yield {
-                            "type": "tool_use",
-                            "id": call_id,
-                            "name": fc.name,
-                            "input": _args_to_dict(fc.args),
-                        }
-        except Exception as e:
-            yield {"type": "error", "message": f"model call failed: {e}"}
+                break
+
+        if stream_error is not None:
+            yield {"type": "error", "message": f"model call failed: {stream_error}"}
             return
+
+        # Flush the successful attempt's events now that we're not retrying.
+        for ev in emitted_events:
+            yield ev
 
         # Reconstruct the model's turn: text (concat) first, then the
         # raw function_call parts so their thought_signature survives.
