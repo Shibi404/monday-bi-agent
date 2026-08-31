@@ -27,15 +27,23 @@ MAX_TOKENS = 4096
 
 
 def build_config(system_prompt: str) -> types.GenerateContentConfig:
-    """Config reused every turn — declares the tools + system prompt."""
+    """Config reused every turn — declares the tools + system prompt.
+
+    thinking_budget=0 disables the model's private reasoning phase. We
+    do this on purpose: thought-capable models emit a thought_signature
+    on function_call parts that MUST be echoed back on the next turn,
+    which conflicts with the loop rebuilding parts from streamed data.
+    For BI queries the model doesn't need hidden reasoning to work well
+    (its visible text is enough), and disabling it makes tool loops
+    faster too.
+    """
     return types.GenerateContentConfig(
         system_instruction=system_prompt,
         max_output_tokens=MAX_TOKENS,
+        thinking_config=types.ThinkingConfig(thinking_budget=0),
         tools=[
             types.Tool(function_declarations=FUNCTION_DECLARATIONS),
         ],
-        # Gemini defaults to AUTO (model chooses when to call tools); make
-        # it explicit so we know what we're on.
         tool_config=types.ToolConfig(
             function_calling_config=types.FunctionCallingConfig(mode="AUTO")
         ),
