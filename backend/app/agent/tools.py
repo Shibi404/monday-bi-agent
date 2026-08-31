@@ -140,15 +140,13 @@ class ToolContext:
 
     service: MondayService
     dfs: dict[str, pd.DataFrame]
-    last_quality: dict[str, dict[str, Any]]
 
     async def ensure_df(self, alias: str) -> pd.DataFrame:
         if alias in self.dfs:
             return self.dfs[alias]
-        rows, dq, _ = await self.service.query_board(alias)
+        rows, _dq, _ = await self.service.query_board(alias)
         df = pd.DataFrame(rows)
         self.dfs[alias] = df
-        self.last_quality[alias] = dq.summary()
         return df
 
 
@@ -180,7 +178,6 @@ async def _query_board(args: dict, ctx: ToolContext) -> dict:
     alias = args["board"] if not str(args["board"]).isdigit() else schema["name"]
     key = str(alias).lower().replace(" ", "_")
     ctx.dfs[key] = pd.DataFrame(rows)
-    ctx.last_quality[key] = dq.summary()
 
     preview = rows[:20]
     return {

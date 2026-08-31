@@ -33,7 +33,6 @@ class AppState:
         return ToolContext(
             service=self.monday_service,
             dfs={},
-            last_quality={},
         )
 
 
