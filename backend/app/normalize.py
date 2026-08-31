@@ -13,7 +13,6 @@ from __future__ import annotations
 import json
 import re
 from dataclasses import dataclass, field
-from datetime import datetime, date
 from typing import Any
 
 from dateutil import parser as dateparser
@@ -23,7 +22,6 @@ NULLISH_TOKENS = {"", "n/a", "na", "none", "null", "-", "--", "tbd", "?", "unkno
 
 # Numbers/currency stripping
 _NUM_STRIP_RE = re.compile(r"[₹$,€£\s]")
-_STAGE_PREFIX_RE = re.compile(r"^([A-Z])\.\s+(.*)$")
 
 
 @dataclass
@@ -111,18 +109,10 @@ def _parse_number(text: str | None, value_json: str | None) -> float | None:
 
 
 def _parse_status(text: str | None) -> str | None:
-    """Preserve original but stripped. Callers can further group via stage_letter()."""
+    """Preserve original but stripped."""
     if text is None or _is_nullish(text):
         return None
     return text.strip()
-
-
-def stage_letter(status: str | None) -> str | None:
-    """Extract 'B' from 'B. Sales Qualified Leads', or None."""
-    if not status:
-        return None
-    m = _STAGE_PREFIX_RE.match(status.strip())
-    return m.group(1) if m else None
 
 
 def normalize_rows(
