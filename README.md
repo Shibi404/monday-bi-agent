@@ -56,9 +56,37 @@ npm run dev
 
 Open http://localhost:3000.
 
+## Verify monday.com integration
+
+Before running the agent, sanity-check the connection:
+
+```
+cd backend
+python -m scripts.verify_monday
+```
+
+It prints board names, column schemas, the first few normalized rows from each board, and a data-quality summary. If this passes, the agent will work.
+
 ## Deploy
 
-- **Backend**: Render (Docker or Python). Set env vars from `.env.example`.
-- **Frontend**: Vercel. Set `NEXT_PUBLIC_API_URL` to the Render URL.
+### Backend → Render
+
+`backend/render.yaml` is a ready blueprint. From Render dashboard:
+
+1. **New +** → **Blueprint** → point at this repo.
+2. Render picks up `backend/render.yaml` and creates the web service.
+3. Fill in the `sync: false` env vars in the dashboard:
+   - `ANTHROPIC_API_KEY`
+   - `MONDAY_API_TOKEN`
+   - `MONDAY_BOARD_DEALS` (numeric board id)
+   - `MONDAY_BOARD_WORK_ORDERS` (numeric board id)
+   - `CORS_ORIGINS` — your Vercel URL, e.g. `https://monday-bi-agent.vercel.app`
+4. First deploy takes ~3 min. Confirm `GET /health` returns `{"status":"ok",...}`.
+
+### Frontend → Vercel
+
+1. Import the repo on Vercel, set **Root Directory** to `frontend`.
+2. Add env var `NEXT_PUBLIC_API_URL` = your Render backend URL.
+3. Deploy. Vercel auto-detects Next.js.
 
 See `DECISION_LOG.md` for architecture rationale, trade-offs, and the "leadership updates" interpretation.
