@@ -16,6 +16,7 @@ from __future__ import annotations
 
 import asyncio
 import math
+import re
 import uuid
 from typing import Any, AsyncIterator
 
@@ -23,6 +24,39 @@ from google import genai
 from google.genai import types
 
 from .tools import EXECUTORS, FUNCTION_DECLARATIONS, ToolContext
+
+
+def _friendly_error(exc: Exception) -> str:
+    """Turn a raw provider exception into one short line suitable for the UI.
+
+    The Gemini SDK surfaces server errors as long JSON dumps; showing those
+    verbatim leaks quota telemetry and confuses users. This mapping keeps
+    the technical text out of the chat while still telling the user what
+    to do next.
+    """
+    text = str(exc)
+    if "429" in text or "RESOURCE_EXHAUSTED" in text:
+        m = re.search(r"retry in (\d+(?:\.\d+)?)s", text)
+        wait = f" Please try again in about {int(float(m.group(1)))} seconds." if m else ""
+        return (
+            "The daily request quota for this model has been reached."
+            f"{wait} You can wait for the quota to reset, or add billing"
+            " to raise the limit."
+        )
+    if "503" in text or "UNAVAILABLE" in text:
+        return (
+            "The model is temporarily unavailable due to high demand."
+            " Please try again in a moment."
+        )
+    if "504" in text or "timeout" in text.lower() or "timed out" in text.lower():
+        return "That request took too long. Please try again."
+    if any(k in text for k in ("401", "403", "PERMISSION_DENIED", "UNAUTHENTICATED")):
+        return "The service could not authenticate the request. Please contact the administrator."
+    if "404" in text or "NOT_FOUND" in text:
+        return "The configured model is not available. Please contact the administrator."
+    if "INVALID_ARGUMENT" in text or ("400" in text and "invalid" in text.lower()):
+        return "The model rejected the request. Try rephrasing your question."
+    return "Something went wrong while contacting the model. Please try again."
 
 
 def _scrub_nan(obj: Any) -> Any:
@@ -159,7 +193,7 @@ async def run_agent(
                 break
 
         if stream_error is not None:
-            yield {"type": "error", "message": f"model call failed: {stream_error}"}
+            yield {"type": "error", "message": _friendly_error(stream_error)}
             return
 
         # Flush the successful attempt's events now that we're not retrying.
@@ -226,4 +260,10 @@ async def run_agent(
             yield {"type": "done"}
             return
 
-    yield {"type": "error", "message": f"agent exceeded {MAX_ITERATIONS} iterations"}
+    yield {
+        "type": "error",
+        "message": (
+            "The agent worked on this for a while but couldn't reach a final "
+            "answer. Try breaking the question into smaller pieces."
+        ),
+    }

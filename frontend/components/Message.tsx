@@ -35,7 +35,27 @@ export function Message({ msg }: { msg: ChatMessage }) {
           </div>
         )}
         {msg.error && (
-          <div className="text-red-700 text-sm mt-2">Error: {msg.error}</div>
+          <div className="mt-3 rounded-xl bg-[#fce8e4] border border-[#f0c9c1] p-3.5 flex gap-3 items-start">
+            <svg
+              width="18"
+              height="18"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="#a63b3b"
+              strokeWidth="2"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              className="mt-0.5 shrink-0"
+              aria-hidden
+            >
+              <circle cx="12" cy="12" r="10" />
+              <line x1="12" y1="8" x2="12" y2="12" />
+              <line x1="12" y1="16" x2="12.01" y2="16" />
+            </svg>
+            <div className="text-sm leading-relaxed text-[#7a2a2a]">
+              {msg.error}
+            </div>
+          </div>
         )}
       </div>
     </div>

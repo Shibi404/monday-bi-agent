@@ -146,7 +146,7 @@ export default function ChatPage() {
           return next;
         });
       }
-    } catch (err) {
+    } catch {
       setMessages((all) => {
         const next = [...all];
         const idx = next.findIndex((m) => m.id === assistantMsg.id);
@@ -154,7 +154,8 @@ export default function ChatPage() {
           next[idx] = {
             ...next[idx],
             streaming: false,
-            error: err instanceof Error ? err.message : String(err),
+            error:
+              "Couldn't reach the service. Check your connection and try again.",
           };
         }
         return next;

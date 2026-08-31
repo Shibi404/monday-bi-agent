@@ -129,10 +129,17 @@ async def chat(req: ChatRequest):
                     "event": ev.get("type", "message"),
                     "data": _to_json(ev),
                 }
-        except Exception as e:
+        except Exception:
             yield {
                 "event": "error",
-                "data": _to_json({"message": f"stream failed: {e}"}),
+                "data": _to_json(
+                    {
+                        "message": (
+                            "Something went wrong on the server. "
+                            "Please try again in a moment."
+                        )
+                    }
+                ),
             }
 
     return EventSourceResponse(event_stream())
