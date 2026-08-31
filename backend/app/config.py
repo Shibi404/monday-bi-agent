@@ -24,7 +24,7 @@ def load_settings() -> Settings:
 
     return Settings(
         google_api_key=_required("GOOGLE_API_KEY"),
-        gemini_model=os.getenv("GEMINI_MODEL", "gemini-flash-latest"),
+        gemini_model=os.getenv("GEMINI_MODEL", "gemini-2.0-flash"),
         monday_api_token=_required("MONDAY_API_TOKEN"),
         monday_board_deals=int(_required("MONDAY_BOARD_DEALS")),
         monday_board_work_orders=int(_required("MONDAY_BOARD_WORK_ORDERS")),

@@ -19,6 +19,6 @@ services:
       - key: MONDAY_BOARD_WORK_ORDERS
         sync: false
       - key: GEMINI_MODEL
-        value: gemini-flash-latest
+        value: gemini-2.0-flash
       - key: CORS_ORIGINS
         sync: false
