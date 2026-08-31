@@ -135,23 +135,21 @@ async def run_agent(
     appended too, so the next turn can pick up cleanly.
     """
     for _ in range(MAX_ITERATIONS):
+        # Reset per-iteration state on every retry attempt so a failed
+        # attempt's partial output can't leak into the next one. The
+        # retained fc parts preserve each call's thought_signature that
+        # Gemini requires when the call is echoed back next turn.
         text_chunks: list[str] = []
-        # Preserve the original Part objects for function calls — they
-        # carry a thought_signature the API requires when the same call
-        # is echoed back on the next turn. Rebuilding via
-        # types.Part(function_call=fc) drops that signature and Gemini
-        # rejects the follow-up with a 400.
         fc_parts: list[types.Part] = []
-        # Pair each FunctionCall with the id we emitted so tool_result
-        # events can be matched back to their tool_use on the frontend.
         function_calls: list[tuple[str, Any]] = []
-
+        emitted_events: list[dict[str, Any]] = []
         stream_error: Exception | None = None
+
         for attempt in range(MAX_RETRIES + 1):
             text_chunks = []
             fc_parts = []
             function_calls = []
-            emitted_events: list[dict[str, Any]] = []  # buffer to avoid double-emit on retry
+            emitted_events = []
             try:
                 stream = await client.aio.models.generate_content_stream(
                     model=model,
