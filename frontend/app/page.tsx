@@ -22,9 +22,13 @@ export default function ChatPage() {
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [input, setInput] = useState("");
   const [busy, setBusy] = useState(false);
+  const [listening, setListening] = useState(false);
   const [convId, setConvId] = useState<string | undefined>(undefined);
   const abortRef = useRef<AbortController | null>(null);
   const scrollRef = useRef<HTMLDivElement>(null);
+  // Using `any` for the Web Speech API — types aren't in the TS DOM lib
+  // and only two browsers implement it consistently (Chromium + Safari).
+  const recognitionRef = useRef<any>(null);
 
   useEffect(() => {
     scrollRef.current?.scrollTo({
@@ -32,6 +36,35 @@ export default function ChatPage() {
       behavior: "smooth",
     });
   }, [messages]);
+
+  function toggleMic() {
+    const SR =
+      typeof window !== "undefined" &&
+      ((window as any).SpeechRecognition ||
+        (window as any).webkitSpeechRecognition);
+    if (!SR) {
+      alert("Voice input isn't supported in this browser. Try Chrome or Edge.");
+      return;
+    }
+    if (listening) {
+      recognitionRef.current?.stop();
+      return;
+    }
+    const rec = new SR();
+    rec.continuous = false;
+    rec.interimResults = true;
+    rec.lang = "en-US";
+    rec.onresult = (e: any) => {
+      let t = "";
+      for (let i = 0; i < e.results.length; i++) t += e.results[i][0].transcript;
+      setInput(t);
+    };
+    rec.onend = () => setListening(false);
+    rec.onerror = () => setListening(false);
+    recognitionRef.current = rec;
+    setListening(true);
+    rec.start();
+  }
 
   async function send(text: string) {
     const trimmed = text.trim();
@@ -205,6 +238,35 @@ export default function ChatPage() {
               disabled={busy}
               className="flex-1 bg-transparent px-4 py-3 text-base text-[var(--text)] placeholder:text-[var(--muted)] focus:outline-none disabled:opacity-60"
             />
+            <button
+              type="button"
+              onClick={toggleMic}
+              aria-label={listening ? "Stop recording" : "Start voice input"}
+              className={`
+                rounded-xl w-10 h-10 flex items-center justify-center shrink-0
+                transition-all duration-150
+                ${
+                  listening
+                    ? "bg-red-500 text-white shadow-[0_0_0_5px_rgba(239,68,68,0.18)] animate-pulse"
+                    : "bg-[var(--panel)] text-[var(--text)] shadow-[0_1px_2px_rgba(28,25,23,0.06)] hover:bg-[#e4ddce] hover:shadow-[0_3px_10px_-2px_rgba(28,25,23,0.15)] hover:-translate-y-px active:translate-y-0"
+                }
+              `}
+            >
+              <svg
+                width="18"
+                height="18"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              >
+                <rect x="9" y="2" width="6" height="12" rx="3" />
+                <path d="M5 10v2a7 7 0 0 0 14 0v-2" />
+                <line x1="12" y1="19" x2="12" y2="22" />
+              </svg>
+            </button>
             {(busy || input.trim()) && (
               <button
                 type="submit"
