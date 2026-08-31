@@ -15,7 +15,7 @@ Next.js chat UI ── SSE ──► FastAPI /chat ──► Gemini (function-ca
 
 - **Backend**: Python 3.11+, FastAPI, google-genai SDK, pandas
 - **Frontend**: Next.js 15, React 19, Tailwind, SSE streaming
-- **Model**: Gemini 2.5 Flash (free tier — 250 requests/day covers a demo comfortably)
+- **Model**: `gemini-flash-latest` — currently Gemini 3 Flash, tracks the latest free-tier flash model automatically
 - **Data source**: monday.com GraphQL API (read-only)
 
 ## Repo layout
