@@ -5,7 +5,7 @@ import { DialogBox } from "../components/DialogBox";
 import { Message } from "../components/Message";
 import { ModelPicker, type ModelOption } from "../components/ModelPicker";
 import { streamChat } from "./stream";
-import type { ChatMessage, ToolCall } from "./types";
+import type { ChatMessage } from "./types";
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
 
@@ -81,13 +81,11 @@ export default function ChatPage() {
       id: newId(),
       role: "user",
       text: trimmed,
-      toolCalls: [],
     };
     const assistantMsg: ChatMessage = {
       id: newId(),
       role: "assistant",
       text: "",
-      toolCalls: [],
       streaming: true,
     };
     setMessages((m) => [...m, userMsg, assistantMsg]);
@@ -109,7 +107,7 @@ export default function ChatPage() {
           const next = [...all];
           const idx = next.findIndex((m) => m.id === assistantMsg.id);
           if (idx < 0) return next;
-          const m = { ...next[idx], toolCalls: [...next[idx].toolCalls] };
+          const m = { ...next[idx] };
 
           switch (ev.type) {
             case "start":
@@ -118,21 +116,6 @@ export default function ChatPage() {
             case "text_delta":
               m.text = m.text + ev.text;
               break;
-            case "tool_use":
-              m.toolCalls.push({
-                id: ev.id,
-                name: ev.name,
-                input: ev.input,
-              });
-              break;
-            case "tool_result": {
-              const call = m.toolCalls.find((c) => c.id === ev.id);
-              if (call) {
-                call.result = ev.content;
-                call.isError = ev.is_error;
-              }
-              break;
-            }
             case "error":
               m.error = ev.message;
               m.streaming = false;
