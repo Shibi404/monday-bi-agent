@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+import { DialogBox } from "../components/DialogBox";
 import { Message } from "../components/Message";
 import { ModelPicker, type ModelOption } from "../components/ModelPicker";
 import { streamChat } from "./stream";
@@ -30,6 +31,7 @@ export default function ChatPage() {
   const [listening, setListening] = useState(false);
   const [convId, setConvId] = useState<string | undefined>(undefined);
   const [selectedModel, setSelectedModel] = useState(MODELS[0].id);
+  const [confirmNewChat, setConfirmNewChat] = useState(false);
   const abortRef = useRef<AbortController | null>(null);
   const scrollRef = useRef<HTMLDivElement>(null);
   // Using `any` for the Web Speech API — types aren't in the TS DOM lib
@@ -186,7 +188,13 @@ export default function ChatPage() {
           Skylark
         </span>
         <button
-          onClick={newChat}
+          onClick={() => {
+            if (messages.length === 0) {
+              newChat();
+            } else {
+              setConfirmNewChat(true);
+            }
+          }}
           className="bg-[var(--text)] text-[var(--bg)] hover:opacity-90 transition-opacity text-base font-medium rounded-xl px-6 py-2.5"
         >
           New chat
@@ -316,6 +324,19 @@ export default function ChatPage() {
           </div>
         </form>
       </main>
+
+      <DialogBox
+        open={confirmNewChat}
+        title="Start a new chat?"
+        description="Your current conversation and its cached data will be wiped. This action can't be undone."
+        confirmLabel="New chat"
+        cancelLabel="Cancel"
+        onConfirm={() => {
+          setConfirmNewChat(false);
+          newChat();
+        }}
+        onCancel={() => setConfirmNewChat(false)}
+      />
     </div>
   );
 }
