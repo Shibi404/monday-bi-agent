@@ -7,8 +7,8 @@ load_dotenv()
 
 @dataclass(frozen=True)
 class Settings:
-    anthropic_api_key: str
-    anthropic_model: str
+    google_api_key: str
+    gemini_model: str
     monday_api_token: str
     monday_board_deals: int
     monday_board_work_orders: int
@@ -23,8 +23,8 @@ def load_settings() -> Settings:
         return v
 
     return Settings(
-        anthropic_api_key=_required("ANTHROPIC_API_KEY"),
-        anthropic_model=os.getenv("ANTHROPIC_MODEL", "claude-haiku-4-5-20251001"),
+        google_api_key=_required("GOOGLE_API_KEY"),
+        gemini_model=os.getenv("GEMINI_MODEL", "gemini-2.5-flash"),
         monday_api_token=_required("MONDAY_API_TOKEN"),
         monday_board_deals=int(_required("MONDAY_BOARD_DEALS")),
         monday_board_work_orders=int(_required("MONDAY_BOARD_WORK_ORDERS")),

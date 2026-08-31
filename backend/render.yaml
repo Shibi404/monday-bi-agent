@@ -10,7 +10,7 @@ services:
     envVars:
       - key: PYTHON_VERSION
         value: 3.11.9
-      - key: ANTHROPIC_API_KEY
+      - key: GOOGLE_API_KEY
         sync: false
       - key: MONDAY_API_TOKEN
         sync: false
@@ -18,7 +18,7 @@ services:
         sync: false
       - key: MONDAY_BOARD_WORK_ORDERS
         sync: false
-      - key: ANTHROPIC_MODEL
-        value: claude-haiku-4-5-20251001
+      - key: GEMINI_MODEL
+        value: gemini-2.5-flash
       - key: CORS_ORIGINS
         sync: false
