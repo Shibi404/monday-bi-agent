@@ -186,23 +186,61 @@ export default function ChatPage() {
             e.preventDefault();
             send(input);
           }}
-          className="pb-6 pt-3"
+          className="pb-8 pt-4"
         >
-          <div className="flex gap-2 bg-[var(--panel)] border border-[var(--border)] focus-within:border-[color:var(--muted)] rounded-2xl p-2 transition-colors">
+          <div
+            className="
+              flex items-center gap-2
+              bg-white border border-[var(--border)]
+              rounded-2xl p-2 pl-1
+              shadow-[0_4px_16px_-4px_rgba(28,25,23,0.08),0_2px_4px_-1px_rgba(28,25,23,0.04)]
+              focus-within:shadow-[0_10px_28px_-6px_rgba(28,25,23,0.14),0_4px_8px_-2px_rgba(28,25,23,0.06)]
+              focus-within:border-[var(--text)]
+              transition-all duration-200
+            "
+          >
             <input
               value={input}
               onChange={(e) => setInput(e.target.value)}
               placeholder="Ask about pipeline, deals, work orders…"
               disabled={busy}
-              className="flex-1 bg-transparent px-3 py-2 text-sm text-[var(--text)] placeholder:text-[var(--muted)] focus:outline-none disabled:opacity-60"
+              className="flex-1 bg-transparent px-4 py-3 text-base text-[var(--text)] placeholder:text-[var(--muted)] focus:outline-none disabled:opacity-60"
             />
-            <button
-              type="submit"
-              disabled={busy || !input.trim()}
-              className="bg-[var(--text)] text-[var(--bg)] hover:opacity-90 transition-opacity rounded-xl px-4 text-sm font-medium disabled:opacity-30"
-            >
-              {busy ? "…" : "Send"}
-            </button>
+            {(busy || input.trim()) && (
+              <button
+                type="submit"
+                disabled={busy || !input.trim()}
+                aria-label="Send"
+                className="
+                  bg-[var(--text)] text-[var(--bg)]
+                  hover:opacity-90 transition-opacity
+                  rounded-xl w-10 h-10 flex items-center justify-center shrink-0
+                  disabled:opacity-40
+                "
+              >
+                {busy ? (
+                  <span className="inline-flex gap-0.5">
+                    <span className="w-1 h-1 rounded-full bg-current animate-pulse" />
+                    <span className="w-1 h-1 rounded-full bg-current animate-pulse [animation-delay:150ms]" />
+                    <span className="w-1 h-1 rounded-full bg-current animate-pulse [animation-delay:300ms]" />
+                  </span>
+                ) : (
+                  <svg
+                    width="18"
+                    height="18"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth="2.5"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                  >
+                    <path d="M12 19V5" />
+                    <path d="M5 12l7-7 7 7" />
+                  </svg>
+                )}
+              </button>
+            )}
           </div>
         </form>
       </main>
