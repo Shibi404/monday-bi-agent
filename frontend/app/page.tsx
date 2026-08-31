@@ -33,14 +33,13 @@ export default function ChatPage() {
   const [selectedModel, setSelectedModel] = useState(MODELS[0].id);
   const [confirmNewChat, setConfirmNewChat] = useState(false);
   const abortRef = useRef<AbortController | null>(null);
-  const scrollRef = useRef<HTMLDivElement>(null);
   // Using `any` for the Web Speech API — types aren't in the TS DOM lib
   // and only two browsers implement it consistently (Chromium + Safari).
   const recognitionRef = useRef<any>(null);
 
   useEffect(() => {
-    scrollRef.current?.scrollTo({
-      top: scrollRef.current.scrollHeight,
+    window.scrollTo({
+      top: document.body.scrollHeight,
       behavior: "smooth",
     });
   }, [messages]);
@@ -184,7 +183,7 @@ export default function ChatPage() {
 
   return (
     <div className="min-h-screen flex flex-col">
-      <header className="px-8 h-20 flex items-center justify-between">
+      <header className="sticky top-0 z-30 bg-[var(--bg)] px-8 h-20 flex items-center justify-between">
         <span className="text-3xl font-bold tracking-tight text-[var(--text)]">
           Skylark
         </span>
@@ -203,7 +202,7 @@ export default function ChatPage() {
       </header>
 
       <main className="flex-1 flex flex-col max-w-3xl w-full mx-auto px-6">
-        <div ref={scrollRef} className="flex-1 overflow-y-auto py-8 space-y-6">
+        <div className="flex-1 py-8 space-y-6">
           {messages.length === 0 && (
             <div className="mt-24 space-y-8">
               <div className="text-center">
@@ -234,7 +233,7 @@ export default function ChatPage() {
             e.preventDefault();
             send(input);
           }}
-          className="pb-8 pt-4"
+          className="sticky bottom-0 z-30 bg-[var(--bg)] pb-6 pt-4"
         >
           <div
             className="
