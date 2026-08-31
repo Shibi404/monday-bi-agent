@@ -3,6 +3,7 @@
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 import type { ChatMessage } from "../app/types";
+import { ThinkingIndicator } from "./ThinkingIndicator";
 
 export function Message({ msg }: { msg: ChatMessage }) {
   const isUser = msg.role === "user";
@@ -24,16 +25,7 @@ export function Message({ msg }: { msg: ChatMessage }) {
             <ReactMarkdown remarkPlugins={[remarkGfm]}>{msg.text}</ReactMarkdown>
           </div>
         )}
-        {showThinking && (
-          <div className="flex items-center gap-2 text-[var(--muted)] text-sm">
-            <span className="inline-flex gap-1">
-              <span className="w-1.5 h-1.5 rounded-full bg-[var(--muted)] animate-pulse" />
-              <span className="w-1.5 h-1.5 rounded-full bg-[var(--muted)] animate-pulse [animation-delay:150ms]" />
-              <span className="w-1.5 h-1.5 rounded-full bg-[var(--muted)] animate-pulse [animation-delay:300ms]" />
-            </span>
-            <span className="italic">thinking</span>
-          </div>
-        )}
+        {showThinking && <ThinkingIndicator />}
         {msg.error && (
           <div className="mt-3 rounded-xl bg-[#fce8e4] border border-[#f0c9c1] p-3.5 flex gap-3 items-start">
             <svg
