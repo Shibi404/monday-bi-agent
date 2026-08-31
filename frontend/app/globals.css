@@ -14,6 +14,13 @@
   --user: #1c1917;
 }
 
+html {
+  /* Always reserve space for the scrollbar so the layout doesn't
+     shift horizontally when content shortens (e.g. New chat clears
+     messages) or when a modal locks body scroll. */
+  scrollbar-gutter: stable;
+}
+
 html, body {
   background: var(--bg);
   color: var(--text);
