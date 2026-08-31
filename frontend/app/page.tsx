@@ -63,6 +63,8 @@ export default function ChatPage() {
         { message: trimmed, conversation_id: convId },
         controller.signal
       )) {
+        // eslint-disable-next-line no-console
+        console.debug("[agent event]", ev);
         setMessages((all) => {
           const next = [...all];
           const idx = next.findIndex((m) => m.id === assistantMsg.id);
