@@ -166,8 +166,8 @@ export default function ChatPage() {
 
   return (
     <div className="min-h-screen flex flex-col">
-      <header className="sticky top-0 z-30 bg-[var(--bg)] px-8 h-20 flex items-center justify-between">
-        <span className="text-3xl font-bold tracking-tight text-[var(--text)]">
+      <header className="sticky top-0 z-30 bg-[var(--bg)] px-4 sm:px-8 h-16 sm:h-20 flex items-center justify-between">
+        <span className="text-2xl sm:text-3xl font-bold tracking-tight text-[var(--text)]">
           Skylark
         </span>
         <button
@@ -178,18 +178,18 @@ export default function ChatPage() {
               setConfirmNewChat(true);
             }
           }}
-          className="bg-[var(--text)] text-[var(--bg)] hover:opacity-90 transition-opacity text-base font-medium rounded-xl px-6 py-2.5"
+          className="bg-[var(--text)] text-[var(--bg)] hover:opacity-90 transition-opacity text-sm sm:text-base font-medium rounded-xl px-4 sm:px-6 py-2 sm:py-2.5"
         >
           New chat
         </button>
       </header>
 
-      <main className="flex-1 flex flex-col max-w-3xl w-full mx-auto px-6">
+      <main className="flex-1 flex flex-col max-w-3xl w-full mx-auto px-4 sm:px-6">
         <div className="flex-1 py-8 space-y-6">
           {messages.length === 0 && (
-            <div className="mt-24 space-y-8">
+            <div className="mt-12 sm:mt-24 space-y-6 sm:space-y-8">
               <div className="text-center">
-                <h1 className="text-3xl font-semibold tracking-tight text-[var(--text)]">
+                <h1 className="text-2xl sm:text-3xl font-semibold tracking-tight text-[var(--text)]">
                   What do you want to know?
                 </h1>
               </div>
@@ -220,9 +220,9 @@ export default function ChatPage() {
         >
           <div
             className="
-              flex items-center gap-2
+              flex items-center gap-1.5 sm:gap-2
               bg-white border border-[var(--border)]
-              rounded-xl p-2 pl-1
+              rounded-xl p-1.5 sm:p-2 pl-1
               shadow-[0_0_24px_0_rgba(28,25,23,0.08)]
               focus-within:shadow-[0_0_36px_2px_rgba(28,25,23,0.14)]
               transition-all duration-200
@@ -233,7 +233,7 @@ export default function ChatPage() {
               onChange={(e) => setInput(e.target.value)}
               placeholder="Ask about pipeline, deals, work orders…"
               disabled={busy}
-              className="flex-1 bg-transparent px-4 py-3 text-base text-[var(--text)] placeholder:text-[var(--muted)] focus:outline-none disabled:opacity-60"
+              className="flex-1 min-w-0 bg-transparent px-3 sm:px-4 py-2.5 sm:py-3 text-sm sm:text-base text-[var(--text)] placeholder:text-[var(--muted)] focus:outline-none disabled:opacity-60"
             />
             <ModelPicker
               models={MODELS}

@@ -30,6 +30,15 @@ html, body {
   height: 100%;
 }
 
+/* Belt-and-braces: any child that briefly overflows the viewport
+   horizontally (an over-sized popover, an untamed table) is clipped
+   instead of introducing a page-wide horizontal scroll. Using `clip`
+   rather than `hidden` so it does NOT create a new scroll container,
+   which would break sticky positioning on the header/input bar. */
+body {
+  overflow-x: clip;
+}
+
 /* Chromium / WebKit: a slim scrollbar that reads as part of the page
    rather than a chunky system-grey bar next to the cream background. */
 ::-webkit-scrollbar {
