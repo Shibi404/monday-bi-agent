@@ -142,18 +142,16 @@ export default function ChatPage() {
 
   return (
     <div className="min-h-screen flex flex-col">
-      <header className="border-b border-[var(--border)]">
-        <div className="max-w-3xl mx-auto px-6 h-14 flex items-center justify-between">
-          <span className="text-lg font-bold tracking-tight text-[var(--text)]">
-            Skylark
-          </span>
-          <button
-            onClick={newChat}
-            className="bg-[var(--text)] text-[var(--bg)] hover:opacity-90 transition-opacity text-sm font-medium rounded-full px-4 py-1.5"
-          >
-            New chat
-          </button>
-        </div>
+      <header className="px-8 h-20 flex items-center justify-between">
+        <span className="text-3xl font-bold tracking-tight text-[var(--text)]">
+          Skylark
+        </span>
+        <button
+          onClick={newChat}
+          className="bg-[var(--text)] text-[var(--bg)] hover:opacity-90 transition-opacity text-base font-medium rounded-full px-6 py-2.5"
+        >
+          New chat
+        </button>
       </header>
 
       <main className="flex-1 flex flex-col max-w-3xl w-full mx-auto px-6">
