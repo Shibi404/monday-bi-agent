@@ -1,4 +1,4 @@
-"""Tool schemas and executors used by the Claude tool-use loop.
+"""Tool schemas and executors used by the Gemini function-calling loop.
 
 Tools are intentionally small and composable so the agent chooses
 its own path:
@@ -27,30 +27,35 @@ import pandas as pd
 from ..monday_service import MondayService
 
 
-TOOL_SCHEMAS: list[dict[str, Any]] = [
+# Gemini function declarations. Type strings are uppercase per the
+# Gemini schema (STRING, INTEGER, OBJECT, ...); passed as plain dicts,
+# which google-genai accepts alongside typed Schema objects.
+FUNCTION_DECLARATIONS: list[dict[str, Any]] = [
     {
         "name": "list_boards",
         "description": (
             "List the monday.com boards this agent can read. Use once at "
-            "the start of a session to see what data is available. Each board "
-            "has a numeric id, a human-readable name, an alias ('deals' or "
-            "'work_orders') for convenience, and an item count."
+            "the start of a session to see what data is available. Each "
+            "board has a numeric id, a human-readable name, an alias "
+            "('deals' or 'work_orders') for convenience, and an item count."
         ),
-        "input_schema": {"type": "object", "properties": {}, "required": []},
+        "parameters": {
+            "type": "OBJECT",
+            "properties": {},
+        },
     },
     {
         "name": "get_board_schema",
         "description": (
             "Return the columns of a board so you can pick the right ones "
-            "for filtering or aggregation. Call this BEFORE query_board if "
-            "you're not already sure which columns exist. Returns "
-            "{name, columns: [{title, type, id}]}."
+            "for filtering or aggregation. Call this BEFORE query_board "
+            "if you're not already sure which columns exist."
         ),
-        "input_schema": {
-            "type": "object",
+        "parameters": {
+            "type": "OBJECT",
             "properties": {
                 "board": {
-                    "type": "string",
+                    "type": "STRING",
                     "description": "Board alias ('deals' or 'work_orders') or numeric ID.",
                 }
             },
@@ -64,20 +69,20 @@ TOOL_SCHEMAS: list[dict[str, Any]] = [
             "in one call. Rows are keyed by column TITLE (as shown in "
             "monday). Dates come back as ISO strings, numbers as floats, "
             "empty/nullish values as null. The data_quality field lists "
-            "columns with missing values and any parse errors so you can "
-            "caveat the answer. Loads the full board unless max_items is set."
+            "columns with missing values so you can caveat the answer. "
+            "Only a 20-row preview is returned to keep the context small; "
+            "the full board is loaded inside run_analysis."
         ),
-        "input_schema": {
-            "type": "object",
+        "parameters": {
+            "type": "OBJECT",
             "properties": {
                 "board": {
-                    "type": "string",
+                    "type": "STRING",
                     "description": "Board alias ('deals' or 'work_orders') or numeric ID.",
                 },
                 "max_items": {
-                    "type": "integer",
+                    "type": "INTEGER",
                     "description": "Optional cap on rows fetched (leave off for full board).",
-                    "minimum": 1,
                 },
             },
             "required": ["board"],
@@ -99,11 +104,11 @@ TOOL_SCHEMAS: list[dict[str, Any]] = [
             "    open_deals = deals_df[deals_df['Deal Status'] == 'Open']\n"
             "    result = open_deals.groupby('Sector/service')['Masked Deal value'].sum().to_dict()\n"
         ),
-        "input_schema": {
-            "type": "object",
+        "parameters": {
+            "type": "OBJECT",
             "properties": {
                 "code": {
-                    "type": "string",
+                    "type": "STRING",
                     "description": "Python code to execute. Set `result` to the value you want back.",
                 }
             },
@@ -113,16 +118,15 @@ TOOL_SCHEMAS: list[dict[str, Any]] = [
     {
         "name": "ask_user",
         "description": (
-            "Ask the user a clarifying question when the request is genuinely "
-            "ambiguous (e.g. 'this quarter' with no fiscal-year context, or a "
-            "sector name that doesn't match any value). Prefer making a "
-            "reasonable assumption and stating it — only use this tool when "
-            "an assumption would materially change the answer."
+            "Ask the user a clarifying question when the request is "
+            "genuinely ambiguous. Prefer making a reasonable assumption "
+            "and stating it — only use this tool when an assumption would "
+            "materially change the answer."
         ),
-        "input_schema": {
-            "type": "object",
+        "parameters": {
+            "type": "OBJECT",
             "properties": {
-                "question": {"type": "string"},
+                "question": {"type": "STRING"},
             },
             "required": ["question"],
         },
@@ -135,9 +139,7 @@ class ToolContext:
     """State shared across tool calls within one conversation."""
 
     service: MondayService
-    # DataFrame cache so run_analysis doesn't refetch every call
     dfs: dict[str, pd.DataFrame]
-    # Track quality reports so the agent's answers can cite them
     last_quality: dict[str, dict[str, Any]]
 
     async def ensure_df(self, alias: str) -> pd.DataFrame:
@@ -175,13 +177,11 @@ async def _query_board(args: dict, ctx: ToolContext) -> dict:
     rows, dq, schema = await ctx.service.query_board(
         args["board"], max_items=args.get("max_items")
     )
-    # Cache the df for later run_analysis calls
     alias = args["board"] if not str(args["board"]).isdigit() else schema["name"]
-    ctx.dfs[str(alias).lower().replace(" ", "_")] = pd.DataFrame(rows)
-    ctx.last_quality[str(alias).lower().replace(" ", "_")] = dq.summary()
+    key = str(alias).lower().replace(" ", "_")
+    ctx.dfs[key] = pd.DataFrame(rows)
+    ctx.last_quality[key] = dq.summary()
 
-    # Cap the payload back to Claude to avoid blowing up context.
-    # The full DataFrame stays available inside run_analysis.
     preview = rows[:20]
     return {
         "board": schema["name"],
@@ -220,7 +220,6 @@ def _serialise_result(result: Any) -> Any:
 
 
 async def _run_analysis(args: dict, ctx: ToolContext) -> dict:
-    # Pre-load both boards so DataFrames are ready
     for alias in ("deals", "work_orders"):
         await ctx.ensure_df(alias)
 
@@ -249,9 +248,6 @@ async def _run_analysis(args: dict, ctx: ToolContext) -> dict:
 
 
 async def _ask_user(args: dict, _ctx: ToolContext) -> dict:
-    # Actual UX is handled by the loop / frontend; the tool result just
-    # confirms the question was accepted. The loop treats this as a
-    # signal to yield the question to the user and pause.
     return {"asked": args["question"]}
 
 
