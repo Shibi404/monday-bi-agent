@@ -26,10 +26,12 @@ from .tools import EXECUTORS, FUNCTION_DECLARATIONS, ToolContext
 MAX_ITERATIONS = 12
 MAX_TOKENS = 4096
 
-# Free-tier Gemini regularly returns 503/429/500 under load. Retry
-# transient failures with exponential backoff before giving up.
-RETRY_STATUSES = (429, 500, 502, 503, 504)
-MAX_RETRIES = 3
+# Free-tier Gemini regularly returns 503 UNAVAILABLE and other
+# transient 5xx errors under load. Those are worth retrying. 429
+# is a quota error — retrying just burns wall time without a chance
+# of success until the quota window rolls over, so we don't retry it.
+RETRY_STATUSES = (500, 502, 503, 504)
+MAX_RETRIES = 2
 BACKOFF_BASE_S = 1.5
 
 
