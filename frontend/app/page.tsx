@@ -148,7 +148,7 @@ export default function ChatPage() {
         </span>
         <button
           onClick={newChat}
-          className="bg-[var(--text)] text-[var(--bg)] hover:opacity-90 transition-opacity text-base font-medium rounded-full px-6 py-2.5"
+          className="bg-[var(--text)] text-[var(--bg)] hover:opacity-90 transition-opacity text-base font-medium rounded-xl px-6 py-2.5"
         >
           New chat
         </button>
@@ -192,7 +192,7 @@ export default function ChatPage() {
             className="
               flex items-center gap-2
               bg-white border border-[var(--border)]
-              rounded-2xl p-2 pl-1
+              rounded-xl p-2 pl-1
               shadow-[0_4px_16px_-4px_rgba(28,25,23,0.08),0_2px_4px_-1px_rgba(28,25,23,0.04)]
               focus-within:shadow-[0_10px_28px_-6px_rgba(28,25,23,0.14),0_4px_8px_-2px_rgba(28,25,23,0.06)]
               focus-within:border-[var(--text)]
