@@ -81,7 +81,3 @@ class MondayService:
 
         rows, dq = normalize_rows(items, schema["columns"])
         return rows, dq, schema
-
-    def invalidate(self) -> None:
-        self._schema_cache.clear()
-        self._rows_cache.clear()
