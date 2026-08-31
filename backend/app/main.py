@@ -7,9 +7,10 @@
 from __future__ import annotations
 
 import json
+import math
 import uuid
 from contextlib import asynccontextmanager
-from typing import AsyncIterator
+from typing import Any, AsyncIterator
 
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
@@ -20,6 +21,27 @@ from sse_starlette.sse import EventSourceResponse
 from .agent.loop import run_agent
 from .bootstrap import AppState, build_app_state
 from .config import load_settings
+
+
+def _scrub(obj: Any) -> Any:
+    """Recursively convert NaN/Inf floats to None so json.dumps produces
+    valid JSON. Python's json module accepts these by default and emits
+    the tokens ``NaN`` / ``Infinity`` which the browser's JSON.parse
+    rejects, so a pandas-heavy tool result would silently break the
+    stream mid-flight."""
+    if isinstance(obj, float):
+        return None if math.isnan(obj) or math.isinf(obj) else obj
+    if isinstance(obj, dict):
+        return {k: _scrub(v) for k, v in obj.items()}
+    if isinstance(obj, (list, tuple)):
+        return [_scrub(v) for v in obj]
+    return obj
+
+
+def _to_json(payload: dict) -> str:
+    return json.dumps(
+        _scrub(payload), default=str, ensure_ascii=False, allow_nan=False
+    )
 
 
 @asynccontextmanager
@@ -93,7 +115,7 @@ async def chat(req: ChatRequest):
     async def event_stream() -> AsyncIterator[dict]:
         yield {
             "event": "start",
-            "data": json.dumps({"conversation_id": conv_id}),
+            "data": _to_json({"conversation_id": conv_id}),
         }
         try:
             async for ev in run_agent(
@@ -105,12 +127,12 @@ async def chat(req: ChatRequest):
             ):
                 yield {
                     "event": ev.get("type", "message"),
-                    "data": json.dumps(ev, default=str, ensure_ascii=False),
+                    "data": _to_json(ev),
                 }
         except Exception as e:
             yield {
                 "event": "error",
-                "data": json.dumps({"message": f"stream failed: {e}"}),
+                "data": _to_json({"message": f"stream failed: {e}"}),
             }
 
     return EventSourceResponse(event_stream())
