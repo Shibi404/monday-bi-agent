@@ -27,12 +27,27 @@ export function DialogBox({
       if (e.key === "Escape") onCancel();
     };
     document.addEventListener("keydown", onKey);
-    // Prevent background scroll while modal is open
-    const prevOverflow = document.body.style.overflow;
-    document.body.style.overflow = "hidden";
+
+    // Lock background scroll while the dialog is open.
+    // Measure any width the scrollbar was taking BEFORE we hide it
+    // and add matching padding-right to body so the content doesn't
+    // shift horizontally when the scrollbar disappears. scrollbar-gutter
+    // on <html> handles most cases already, this is the belt-and-braces
+    // path used by mature modal libraries (Radix, React-Aria, MUI).
+    const scrollbarWidth =
+      window.innerWidth - document.documentElement.clientWidth;
+    const body = document.body;
+    const prevOverflow = body.style.overflow;
+    const prevPaddingRight = body.style.paddingRight;
+    body.style.overflow = "hidden";
+    if (scrollbarWidth > 0) {
+      body.style.paddingRight = `${scrollbarWidth}px`;
+    }
+
     return () => {
       document.removeEventListener("keydown", onKey);
-      document.body.style.overflow = prevOverflow;
+      body.style.overflow = prevOverflow;
+      body.style.paddingRight = prevPaddingRight;
     };
   }, [open, onCancel]);
 

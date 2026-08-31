@@ -19,12 +19,36 @@ html {
      shift horizontally when content shortens (e.g. New chat clears
      messages) or when a modal locks body scroll. */
   scrollbar-gutter: stable;
+  /* Firefox thin scrollbar tinted to the palette. */
+  scrollbar-width: thin;
+  scrollbar-color: rgba(28, 25, 23, 0.18) transparent;
 }
 
 html, body {
   background: var(--bg);
   color: var(--text);
   height: 100%;
+}
+
+/* Chromium / WebKit: a slim scrollbar that reads as part of the page
+   rather than a chunky system-grey bar next to the cream background. */
+::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+::-webkit-scrollbar-thumb {
+  background-color: rgba(28, 25, 23, 0.18);
+  border-radius: 8px;
+  /* 3px transparent border creates the visual gap so the thumb feels
+     centred in the gutter and slimmer than its actual box. */
+  border: 3px solid transparent;
+  background-clip: content-box;
+}
+::-webkit-scrollbar-thumb:hover {
+  background-color: rgba(28, 25, 23, 0.32);
 }
 
 /* Minimal markdown styles for assistant messages */
