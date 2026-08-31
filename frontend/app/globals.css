@@ -17,3 +17,55 @@ html, body {
   color: var(--text);
   height: 100%;
 }
+
+/* Minimal markdown styles for assistant messages */
+.md-content > * { margin-top: 0; }
+.md-content p { margin: 0 0 0.6em; }
+.md-content p:last-child { margin-bottom: 0; }
+.md-content h1, .md-content h2, .md-content h3 {
+  font-weight: 600;
+  margin: 0.8em 0 0.3em;
+  line-height: 1.25;
+}
+.md-content h1 { font-size: 1.15em; }
+.md-content h2 { font-size: 1.05em; }
+.md-content h3 { font-size: 1em; color: var(--muted); }
+.md-content strong { font-weight: 600; color: #fff; }
+.md-content ul, .md-content ol { margin: 0.4em 0 0.6em; padding-left: 1.25em; }
+.md-content li { margin: 0.15em 0; }
+.md-content code {
+  background: #1c2229;
+  padding: 0.1em 0.35em;
+  border-radius: 4px;
+  font-size: 0.9em;
+  font-family: var(--font-mono, ui-monospace, Menlo, monospace);
+}
+.md-content pre {
+  background: #0d1117;
+  border: 1px solid var(--border);
+  padding: 0.75em;
+  border-radius: 6px;
+  overflow-x: auto;
+  font-size: 0.9em;
+  margin: 0.5em 0;
+}
+.md-content pre code { background: transparent; padding: 0; }
+.md-content table {
+  border-collapse: collapse;
+  margin: 0.5em 0;
+  font-size: 0.9em;
+  width: auto;
+}
+.md-content th, .md-content td {
+  border: 1px solid var(--border);
+  padding: 0.35em 0.7em;
+  text-align: left;
+}
+.md-content th { background: #14181d; font-weight: 600; }
+.md-content a { color: var(--accent); text-decoration: underline; }
+.md-content blockquote {
+  border-left: 3px solid var(--border);
+  padding-left: 0.75em;
+  color: var(--muted);
+  margin: 0.5em 0;
+}
