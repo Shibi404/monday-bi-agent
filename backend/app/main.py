@@ -11,8 +11,9 @@ import uuid
 from contextlib import asynccontextmanager
 from typing import AsyncIterator
 
-from fastapi import FastAPI, HTTPException
+from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
+from google.genai import types
 from pydantic import BaseModel, Field
 from sse_starlette.sse import EventSourceResponse
 
@@ -44,7 +45,7 @@ async def health():
     s = _state(app)
     return {
         "status": "ok",
-        "model": s.settings.anthropic_model,
+        "model": s.settings.gemini_model,
         "boards": list(s.monday_service.board_aliases.keys()),
         "conversations": len(s.conversations),
     }
@@ -52,8 +53,6 @@ async def health():
 
 app.add_middleware(
     CORSMiddleware,
-    # Configured after app is created because we need settings; middleware
-    # is added in the startup hook below.
     allow_origins=["*"],
     allow_credentials=False,
     allow_methods=["*"],
@@ -84,23 +83,24 @@ async def chat(req: ChatRequest):
     conv_id = req.conversation_id or str(uuid.uuid4())
     conv = s.conversations.get(conv_id)
     if conv is None:
-        conv = {"messages": [], "ctx": s.new_context()}
+        conv = {"contents": [], "ctx": s.new_context()}
         s.conversations[conv_id] = conv
 
-    conv["messages"].append({"role": "user", "content": req.message})
+    conv["contents"].append(
+        types.Content(role="user", parts=[types.Part.from_text(text=req.message)])
+    )
 
     async def event_stream() -> AsyncIterator[dict]:
-        # Kickoff event so the client learns its conversation_id
         yield {
             "event": "start",
             "data": json.dumps({"conversation_id": conv_id}),
         }
         try:
             async for ev in run_agent(
-                client=s.anthropic,
-                model=s.settings.anthropic_model,
-                system_prompt=s.system_prompt,
-                messages=conv["messages"],
+                client=s.genai_client,
+                model=s.settings.gemini_model,
+                config=s.gen_config,
+                contents=conv["contents"],
                 ctx=conv["ctx"],
             ):
                 yield {

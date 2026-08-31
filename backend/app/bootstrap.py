@@ -4,8 +4,10 @@ from __future__ import annotations
 from dataclasses import dataclass, field
 from typing import Any
 
-from anthropic import AsyncAnthropic
+from google import genai
+from google.genai import types
 
+from .agent.loop import build_config
 from .agent.prompt import build_system_prompt
 from .agent.tools import ToolContext
 from .config import Settings
@@ -16,11 +18,12 @@ from .monday_service import MondayService
 @dataclass
 class AppState:
     settings: Settings
-    anthropic: AsyncAnthropic
+    genai_client: genai.Client
+    gen_config: types.GenerateContentConfig
     monday_client: MondayClient
     monday_service: MondayService
     system_prompt: str
-    # conversation_id -> {"messages": [...], "ctx": ToolContext}
+    # conversation_id -> {"contents": list[Content], "ctx": ToolContext}
     conversations: dict[str, dict[str, Any]] = field(default_factory=dict)
 
     async def aclose(self) -> None:
@@ -45,8 +48,6 @@ async def build_app_state(settings: Settings) -> AppState:
     )
 
     # Preload schemas so the system prompt can list columns.
-    # Fetch once at startup; a schema TTL of 5 min in the service means
-    # tools will use cached values for early tool calls too.
     summaries = []
     for alias, bid in monday_service.board_aliases.items():
         try:
@@ -76,12 +77,14 @@ async def build_app_state(settings: Settings) -> AppState:
             )
 
     system_prompt = build_system_prompt(summaries)
+    gen_config = build_config(system_prompt)
 
-    anthropic = AsyncAnthropic(api_key=settings.anthropic_api_key)
+    genai_client = genai.Client(api_key=settings.google_api_key)
 
     return AppState(
         settings=settings,
-        anthropic=anthropic,
+        genai_client=genai_client,
+        gen_config=gen_config,
         monday_client=monday_client,
         monday_service=monday_service,
         system_prompt=system_prompt,
