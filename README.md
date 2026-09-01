@@ -2,7 +2,7 @@
 
 Conversational AI agent that answers founder-level business questions by querying monday.com boards (Deals + Work Orders) live. Ask "how's our pipeline in Mining this quarter?" or "prepare a leadership update for this week" and it fetches the relevant boards, cleans messy data, runs the numbers, and answers with insight — not just rows.
 
-- **Live demo:** https://monday-bi-agent-seven.vercel.app
+- **Live demo:** https://skylark-bi-agent-40.vercel.app
 - **Backend health:** https://monday-bi-agent-backend-tjli.onrender.com/health
 
 ---
